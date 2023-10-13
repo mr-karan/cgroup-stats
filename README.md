@@ -1,18 +1,22 @@
 # CGroup Stats
 
-`cgroup-stats` is a Go library designed for retrieving CPU and Memory quota information from Linux control groups (cgroups).
+`cgroup-stats` is a Go library designed for retrieving CPU and Memory limits information from Linux control groups (cgroups).
+
+**NOTE**: cgroups v1 is not supported at the moment.
 
 ## Table of Contents
 
 - [CGroup Stats](#cgroup-stats)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
+  - [Demo](#demo)
+    - [Building the Docker Image](#building-the-docker-image)
+    - [Running Without Limits](#running-without-limits)
+    - [Running With Limits](#running-with-limits)
   - [Usage](#usage)
-    - [GetCPUQuota](#getcpuquota)
-    - [GetMemoryLimit](#getmemorylimit)
+    - [GetCPULimits](#getcpulimits)
+    - [GetMemoryLimits](#getmemorylimits)
   - [Example](#example)
-  - [Contributing](#contributing)
-  - [License](#license)
 
 ## Installation
 
@@ -22,74 +26,74 @@ To start using `cgroup-stats`, install Go and run `go get`:
 go get -u github.com/mr-karan/cgroup-stats
 ```
 
+
+## Demo
+
+### Building the Docker Image
+
+First, build the Docker image using the following command:
+
+```bash
+docker buildx build -t mrkaran/cgroups -f Dockerfile .
+```
+
+### Running Without Limits
+
+Execute the container without any specific CPU or memory limits:
+
+```bash
+docker run --rm -it mrkaran/cgroups
+```
+
+You should see an output similar to:
+
+```
+Number of CPUs on host: 10
+Number of operating system threads: 10
+CPU quota is not set
+Memory limit is not set
+```
+
+### Running With Limits
+
+Now, let's run the container with specific CPU and memory limits. In this case, we're limiting the container to use only half a CPU core (`--cpus=0.5`) and 1000 MiB of memory (`--memory=1000m`):
+
+```bash
+docker run --rm -it --cpus=0.5 --memory=1000m mrkaran/cgroups
+```
+
+You should see an output reflecting the imposed limits:
+
+```
+Number of CPUs on host: 10
+Number of operating system threads: 10
+CPU quota in the container: 0.500000
+Memory limit in the container: 1000.000000 MiB
+```
+
+
 ## Usage
 
 `cgroup-stats` provides easy-to-use functions to retrieve CPU and Memory quota information from cgroups.
 
-### GetCPUQuota
+### GetCPULimits
 
-`GetCPUQuota` function returns the CPU quota assigned to the cgroup.
+`GetCPULimits` function returns the CPU quota assigned to the cgroup.
 
 ```go
-quota, err := cgroupstats.GetCPUQuota()
-if err != nil {
-	fmt.Println("Error getting CPU quota:", err)
-	return
-}
+quota, _ := cgroupstats.GetCPULimits()
 fmt.Println("CPU quota in the container:", quota)
 ```
 
-### GetMemoryLimit
+### GetMemoryLimits
 
-`GetMemoryLimit` function returns the memory limit assigned to the cgroup.
+`GetMemoryLimits` function returns the memory limit assigned to the cgroup.
 
 ```go
-memQuota, err := cgroupstats.GetMemoryLimit()
-if err != nil {
-	fmt.Println("Error getting Memory quota:", err)
-	return
-}
+memQuota, _ := cgroupstats.GetMemoryLimits()
 fmt.Println("Memory limit in the container:", memQuota/1048576)
 ```
 
 ## Example
 
-Below is a simple example demonstrating the usage of `cgroup-stats`:
-
-```go
-package main
-
-import (
-	"fmt"
-	"runtime"
-
-	cgroupstats "github.com/mr-karan/cgroup-stats"
-)
-
-func main() {
-	numCPU := runtime.NumCPU()
-	fmt.Println("Number of CPU on host:", numCPU)
-	fmt.Println("number of operating system threads:", runtime.GOMAXPROCS(0))
-	quota, err := cgroupstats.GetCPUQuota()
-	if err != nil {
-		fmt.Println("Error getting CPU quota:", err)
-		return
-	}
-	fmt.Println("CPU quota in the container:", quota)
-
-	memQuota, err := cgroupstats.GetMemoryLimit()
-	if err != nil {
-		fmt.Println("Error getting Memory quota:", err)
-		return
-	}
-	fmt.Println("Memory limit in the container:", memQuota/1048576)
-}
-```
-
-## Contributing
-
-We love contributions! Please review our [contribution guidelines](CONTRIBUTING.md) to get started.
-
-## License
-
-`cgroup-stats` is licensed under the MIT license. Please refer to the [LICENSE](LICENSE) file for detailed information.
+See [examples/main.go](examples/main.go) for a complete example.

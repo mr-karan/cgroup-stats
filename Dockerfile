@@ -2,7 +2,8 @@
 FROM golang:1.21 AS build
 WORKDIR /app
 COPY . .
-RUN go build -o /app/cgroups.bin examples/main.go
+RUN ls /app
+RUN go build -o /app/cgroups.bin ./examples/main.go
 
 # Run stage 
 FROM ubuntu:latest  
